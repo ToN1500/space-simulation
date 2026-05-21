@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galactic Simulation - แบบจำลอง 3D ทางช้างเผือกและหลุมดำมวลยิ่งยวด</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Background Canvas -->
+    <canvas id="webgl"></canvas>
+
+    <!-- Loading Overlay -->
+    <div id="loader">
+      <div class="loader-content">
+        <h1 class="loader-title">INITIALIZING SIMULATION</h1>
+        <p class="loader-subtitle">Mapping Milky Way & Black Hole coordinate structure...</p>
+        <div class="loader-bar"><div class="loader-progress"></div></div>
+      </div>
+    </div>
+
+    <!-- HUD Overlay (Sci-Fi Dashboard) -->
+    <div id="app-hud">
+      <!-- Top Bar / Header -->
+      <header class="hud-header">
+        <div class="header-logo">
+          <span class="pulse-dot"></span>
+          <h1>GALACTIC OBJECT SIMULATION</h1>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <nav class="hud-navigation">
+          <button class="nav-tab active" data-mode="galaxy">ทางช้างเผือก (Milky Way)</button>
+          <button class="nav-tab" data-mode="blackhole">หลุมดำมวลยิ่งยวด (Black Hole)</button>
+          <button class="nav-tab" data-mode="binarystar">ดาวนิวตรอนคู่ชนกัน (Binary Neutron Star)</button>
+        </nav>
+        
+        <div class="header-system-status">
+          <span class="status-label">ENGINE STATUS:</span>
+          <span class="status-value positive">ACTIVE</span>
+        </div>
+      </header>
+
+      <!-- Sidebar Controls (Glassmorphism Panel) -->
+      <aside class="control-panel glass">
+        <!-- Galaxy Controls Container -->
+        <div id="galaxy-controls" class="control-section">
+          <div class="panel-header">
+            <h2>GALAXY PARAMETERS</h2>
+            <p>ปรับพารามิเตอร์เพื่อคำนวณโครงสร้างดาราจักรใหม่</p>
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>จำนวนดาวฤกษ์ (Star Count)</span>
+              <span id="val-count" class="control-val">50,000</span>
+            </label>
+            <input type="range" id="param-count" min="5000" max="150000" step="5000" value="50000" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>จำนวนแขนกังหัน (Arms)</span>
+              <span id="val-arms" class="control-val">2</span>
+            </label>
+            <input type="range" id="param-arms" min="2" max="8" step="1" value="2" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ความโค้งของแขน (Spin)</span>
+              <span id="val-spin" class="control-val">1.2</span>
+            </label>
+            <input type="range" id="param-spin" min="-3" max="3" step="0.1" value="1.2" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ขนาดกาแล็คซี่ (Radius)</span>
+              <span id="val-radius" class="control-val">15</span>
+            </label>
+            <input type="range" id="param-radius" min="5" max="30" step="0.5" value="15" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ความฟุ้งกระจาย (Randomness)</span>
+              <span id="val-random" class="control-val">0.3</span>
+            </label>
+            <input type="range" id="param-random" min="0.1" max="1.5" step="0.05" value="0.3" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ความเร็วในการหมุน (Speed)</span>
+              <span id="val-speed" class="control-val">0.5</span>
+            </label>
+            <input type="range" id="param-speed" min="-2" max="2" step="0.05" value="0.5" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ความหนาแน่นแกนกลาง (Core Density)</span>
+              <span id="val-core" class="control-val">1.8</span>
+            </label>
+            <input type="range" id="param-core" min="0.5" max="4.0" step="0.1" value="1.8" />
+          </div>
+
+          <div class="color-controls">
+            <h3>โทนสีของกาแล็คซี่ (Color Palette)</h3>
+            <div class="color-picker-row">
+              <div class="color-picker-group">
+                <label for="param-core-color">แกนกลาง (Core)</label>
+                <input type="color" id="param-core-color" value="#ffe6aa" />
+              </div>
+              <div class="color-picker-group">
+                <label for="param-outer-color">ขอบนอก (Outer)</label>
+                <input type="color" id="param-outer-color" value="#0088ff" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Black Hole Controls Container -->
+        <div id="blackhole-controls" class="control-section hidden">
+          <div class="panel-header">
+            <h2>BLACK HOLE PARAMETERS</h2>
+            <p>ปรับพารามิเตอร์โครงสร้างหลุมดำมวลยิ่งยวด</p>
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>มวลหลุมดำ (Mass - Event Horizon)</span>
+              <span id="val-bh-mass" class="control-val">4.0 M</span>
+            </label>
+            <input type="range" id="param-bh-mass" min="1.0" max="10.0" step="0.2" value="4.0" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>จำนวนดวงดาวในจานฝุ่น (Gas Count)</span>
+              <span id="val-bh-count" class="control-val">30,000</span>
+            </label>
+            <input type="range" id="param-bh-count" min="5000" max="100000" step="5000" value="30000" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ขนาดของจานแก๊ส (Accretion Radius)</span>
+              <span id="val-bh-radius" class="control-val">8.0</span>
+            </label>
+            <input type="range" id="param-bh-radius" min="3.0" max="15.0" step="0.2" value="8.0" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>แรงโน้มถ่วงหักเหแสง (Gravity Warp)</span>
+              <span id="val-bh-warp" class="control-val">1.20</span>
+            </label>
+            <input type="range" id="param-bh-warp" min="0.0" max="3.0" step="0.05" value="1.20" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ความเร็ววงโคจรของแก๊ส (Gas Speed)</span>
+              <span id="val-bh-speed" class="control-val">1.00</span>
+            </label>
+            <input type="range" id="param-bh-speed" min="0.1" max="3.0" step="0.05" value="1.00" />
+          </div>
+
+          <div class="color-controls">
+            <h3>โทนสีแก๊สร้อน (Accretion Glow)</h3>
+            <div class="color-picker-row">
+              <div class="color-picker-group">
+                <label for="param-bh-color">จานด้านใน (Inner)</label>
+                <input type="color" id="param-bh-color" value="#ff6600" />
+              </div>
+              <div class="color-picker-group">
+                <label for="param-bh-outer-color">จานด้านนอก (Outer)</label>
+                <input type="color" id="param-bh-outer-color" value="#330088" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Binary Star Controls Container -->
+        <div id="binary-controls" class="control-section hidden">
+          <div class="panel-header">
+            <h2>BINARY NEUTRON STAR</h2>
+            <p>ปรับแต่งดาวนิวตรอนคู่โคจรและการสูญเสียพลังงาน</p>
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>มวลของดาวดวงที่ 1 (Star 1 Mass)</span>
+              <span id="val-bin-m1" class="control-val">1.5 M☉</span>
+            </label>
+            <input type="range" id="param-bin-m1" min="0.5" max="3.0" step="0.1" value="1.5" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>มวลของดาวดวงที่ 2 (Star 2 Mass)</span>
+              <span id="val-bin-m2" class="control-val">1.5 M☉</span>
+            </label>
+            <input type="range" id="param-bin-m2" min="0.5" max="3.0" step="0.1" value="1.5" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ระยะห่างเริ่มต้น (Start Distance)</span>
+              <span id="val-bin-dist" class="control-val">10.0</span>
+            </label>
+            <input type="range" id="param-bin-dist" min="5.0" max="18.0" step="0.5" value="10.0" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>อัตราวงโคจรหดตัว (Decay Rate)</span>
+              <span id="val-bin-decay" class="control-val">0.30</span>
+            </label>
+            <input type="range" id="param-bin-decay" min="0.05" max="1.5" step="0.05" value="0.30" />
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>ความเร็วการจำลอง (Simulation Speed)</span>
+              <span id="val-bin-speed" class="control-val">1.00</span>
+            </label>
+            <input type="range" id="param-bin-speed" min="0.1" max="2.5" step="0.05" value="1.00" />
+          </div>
+
+          <div class="binary-actions" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <button id="btn-bin-collision" class="btn-primary" style="margin-top: 0; background: linear-gradient(135deg, rgba(255,50,50,0.2), rgba(255,100,0,0.2)); border-color: rgba(255,50,50,0.3);">สั่งชนทันที</button>
+            <button id="btn-bin-reset" class="btn-primary" style="margin-top: 0;">เริ่มโคจรใหม่</button>
+          </div>
+        </div>
+
+        <button id="btn-reset" class="btn-primary">รีเซ็ตพารามิเตอร์เริ่มต้น</button>
+      </aside>
+
+      <!-- Right Sidebar / Telemetry -->
+      <aside class="telemetry-panel glass">
+        <div class="panel-header">
+          <h2>TELEMETRY DATA</h2>
+        </div>
+
+        <!-- Galaxy Telemetry -->
+        <div id="galaxy-telemetry" class="telemetry-section">
+          <div class="telemetry-grid">
+            <div class="telemetry-item">
+              <div class="label">EST. DIAMETER</div>
+              <div class="value" id="telemetry-diameter">100,000 ly</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">ORBITAL VELOCITY</div>
+              <div class="value" id="telemetry-velocity">220 km/s</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">SUPERMASSIVE BLACK HOLE</div>
+              <div class="value highlight">SAGITTARIUS A*</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">GALACTIC YEAR</div>
+              <div class="value">230M Earth Yrs</div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h4>ทฤษฎีคลื่นความหนาแน่น</h4>
+            <p>
+              ดาวฤกษ์ในทางช้างเผือกไม่ได้เคลื่อนที่เป็นของแข็งร่วมกัน แต่จะโคจรรอบใจกลางและชะลอตัวลงเมื่อผ่านบริเวณที่มีความหนาแน่นสูง (แขนกังหัน) เกิดเป็นลวดลายกังหันที่คงอยู่ยาวนาน
+            </p>
+          </div>
+        </div>
+
+        <!-- Black Hole Telemetry -->
+        <div id="blackhole-telemetry" class="telemetry-section hidden">
+          <div class="telemetry-grid">
+            <div class="telemetry-item">
+              <div class="label">SOLAR MASSES (M☉)</div>
+              <div class="value" id="telemetry-bh-mass">4.1 Million</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">SCHWARZSCHILD RADIUS</div>
+              <div class="value" id="telemetry-bh-sch-rad">12.1 Million km</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">SPIN PARAMETER (a*)</div>
+              <div class="value highlight">0.92 (KERR BH)</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">GAS VELOCITY AT ISCO</div>
+              <div class="value" id="telemetry-bh-isco-vel">~148,000 km/s</div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h4>ทฤษฎีสัมพัทธภาพทั่วไป</h4>
+            <p>
+              แรงโน้มถ่วงที่มหาศาลทำให้ระนาบเวลาและแสงรอบๆ หลุมดำเกิดการบิดเบี้ยว แสงที่วิ่งอ้อมไปด้านหลังจะถูกโน้มนำให้โค้งอ้อมขึ้นมาด้านบนและด้านล่าง ทำให้เรามองเห็นจานพอกพูนมวลปรากฏเป็นวงล้อมรอบ Event Horizon สีดำ
+            </p>
+          </div>
+        </div>
+
+        <!-- Binary Star Telemetry -->
+        <div id="binary-telemetry" class="telemetry-section hidden">
+          <div class="telemetry-grid">
+            <div class="telemetry-item">
+              <div class="label">SYSTEM STATE</div>
+              <div class="value highlight" id="telemetry-bin-state" style="color: #00ffaa;">ORBITING</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">CURRENT DISTANCE</div>
+              <div class="value" id="telemetry-bin-distance">1,000 km</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">ORBITAL PERIOD</div>
+              <div class="value" id="telemetry-bin-period">15.0 ms</div>
+            </div>
+            <div class="telemetry-item">
+              <div class="label">GRAVITATIONAL WAVES (h)</div>
+              <div class="value" id="telemetry-bin-gw" style="color: #aa3bff;">0.00 × 10⁻²¹</div>
+            </div>
+          </div>
+
+          <!-- Gravitational Wave Chirp Indicator Widget -->
+          <div class="gw-signal-card" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+            <h4 style="font-family: var(--font-sci); font-size: 0.75rem; color: var(--color-secondary); margin-bottom: 0.5rem; letter-spacing: 1px;">GRAVITATIONAL WAVE SIGNAL (CHIRP)</h4>
+            <div class="gw-signal-visualizer" style="height: 40px; background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); border-radius: 4px; display: flex; align-items: center; justify-content: space-around; overflow: hidden; padding: 0 0.5rem;">
+              <div class="gw-bar" style="width: 3px; height: 10%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 15%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 20%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 10%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 25%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 40%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 60%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 80%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 50%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 30%; background: #aa3bff; transition: height 0.05s ease;"></div>
+              <div class="gw-bar" style="width: 3px; height: 95%; background: #aa3bff; transition: height 0.05s ease;"></div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h4>การยุบตัวของวงโคจรและการระเบิด</h4>
+            <p>
+              เมื่อดาวนิวตรอนสองดวงโคจรเข้าใกล้กัน มันจะปลดปล่อยพลังงานออกมาในรูปของคลื่นความโน้มถ่วง (Gravitational Waves) ยิ่งใกล้กันคาบการโคจรจะยิ่งสั้นลงและหมุนเร็วขึ้นจนปะทะกันเกิดการระเบิดครั้งยิ่งใหญ่ออกมาเป็น "Kilonova"
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Controls Help -->
+      <div class="interaction-help">
+        <span class="icon">🖱️</span>
+        <span>ลากเพื่อหมุน | สกรอลล์เพื่อซูม | คลิกขวาเพื่อแพนกล้อง</span>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
