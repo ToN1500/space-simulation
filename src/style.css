@@ -469,24 +469,186 @@ input[type="range"]::-webkit-slider-thumb:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive CSS */
+/* --- Toggle HUD Button Style (Sci-Fi Theme) --- */
+.btn-toggle-hud {
+  background: rgba(0, 136, 255, 0.06);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  color: var(--color-primary);
+  font-family: var(--font-sci);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+.btn-toggle-hud:hover {
+  background: rgba(0, 136, 255, 0.15);
+  border-color: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(0, 136, 255, 0.2);
+}
+
+.btn-toggle-hud:active {
+  transform: scale(0.95);
+}
+
+.toggle-hud-icon {
+  width: 8px;
+  height: 8px;
+  background-color: var(--positive);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--positive);
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+#app-hud.collapsed .toggle-hud-icon {
+  background-color: var(--warning);
+  box-shadow: 0 0 6px var(--warning);
+}
+
+/* --- Collapsible Sidebar Panels Transitions --- */
+.control-panel,
+.telemetry-panel {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Collapsed State for Desktop */
+#app-hud.collapsed .control-panel {
+  transform: translateX(-380px); /* เลื่อนแผงด้านซ้ายออกจากจอ */
+  opacity: 0;
+  pointer-events: none;
+}
+
+#app-hud.collapsed .telemetry-panel {
+  transform: translateX(380px); /* เลื่อนแผงด้านขวาออกจากจอ */
+  opacity: 0;
+  pointer-events: none;
+}
+
+#app-hud.collapsed .interaction-help {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 20px) !important;
+}
+
+/* --- Responsive CSS --- */
 @media (max-width: 1024px) {
   #app-hud {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    overflow-y: auto;
-    pointer-events: auto; /* Allow entire HUD to scroll */
+    grid-template-rows: 70px 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    overflow: hidden; /* ป้องกันหน้าจอหลักเกิด Scrollbar */
   }
-  
-  .glass {
-    max-height: none;
-  }
-  
+
+  /* ปรับแผงให้เป็น Floating Overlay ลอยอยู่เหนือ Canvas */
+  .control-panel, 
   .telemetry-panel {
-    order: 3;
+    position: absolute;
+    top: 95px;
+    width: 320px;
+    max-height: calc(100vh - 120px) !important;
+    z-index: 50;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    pointer-events: auto;
   }
-  
+
+  .control-panel {
+    left: 1rem;
+    transform: translateX(-360px); /* ซ่อนนอกจอฝั่งซ้าย */
+  }
+
+  .telemetry-panel {
+    right: 1rem;
+    transform: translateX(360px); /* ซ่อนนอกจอฝั่งขวา */
+  }
+
+  /* แสดงผลแผงลอยเมื่อไม่ได้ถูก collapsed */
+  #app-hud:not(.collapsed) .control-panel {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  #app-hud:not(.collapsed) .telemetry-panel {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
   .interaction-help {
     display: none;
   }
 }
+
+/* หน้าจอขนาดเล็กมาก (Mobile / Smartphones) */
+@media (max-width: 768px) {
+  .hud-header {
+    padding: 0 1rem;
+  }
+
+  .header-logo h1 {
+    display: none; /* ซ่อนหัวเรื่องยาวๆ บนมือถือ */
+  }
+
+  .hud-navigation {
+    gap: 0.4rem;
+  }
+
+  .nav-tab {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.65rem;
+    letter-spacing: 0;
+  }
+
+  .btn-toggle-hud {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.65rem;
+  }
+
+  .header-system-status {
+    display: none; /* ซ่อนสเตตัสบนมือถือเพื่อประหยัดพื้นที่ */
+  }
+
+  /* ปรับขนาดแผงควบคุมให้สไลด์ทับหน้าจอในรูปแบบครึ่งจอบน-ล่างเพื่อให้ใช้นิ้วเลื่อน 3D ได้ */
+  .control-panel, 
+  .telemetry-panel {
+    width: calc(100% - 2rem);
+    left: 1rem;
+    right: 1rem;
+    height: calc(45vh - 50px);
+    max-height: none !important;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+  }
+
+  .control-panel {
+    top: 95px;
+    transform: translateY(-150%); /* สไลด์ออกด้านบน */
+  }
+
+  .telemetry-panel {
+    bottom: 1.5rem;
+    top: auto;
+    transform: translateY(150%); /* สไลด์ออกด้านล่าง */
+  }
+
+  /* สไลด์ลอยมาประกบเมื่อเปิด HUD บนมือถือ */
+  #app-hud:not(.collapsed) .control-panel {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  #app-hud:not(.collapsed) .telemetry-panel {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+

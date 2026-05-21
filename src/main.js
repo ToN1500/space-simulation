@@ -86,6 +86,8 @@ const uiElements = {
   btnBinReset: document.getElementById('btn-bin-reset'),
   
   btnReset: document.getElementById('btn-reset'),
+  btnToggleHud: document.getElementById('btn-toggle-hud'),
+  textToggleHud: document.getElementById('text-toggle-hud'),
   
   // Values labels - Galaxy
   valCount: document.getElementById('val-count'),
@@ -446,6 +448,29 @@ function setupUI() {
     }
     updateTelemetry();
   });
+  // Toggle HUD Event Listener
+  if (uiElements.btnToggleHud) {
+    uiElements.btnToggleHud.addEventListener('click', () => {
+      const hud = document.getElementById('app-hud');
+      if (hud) {
+        const isCollapsed = hud.classList.toggle('collapsed');
+        if (uiElements.textToggleHud) {
+          uiElements.textToggleHud.textContent = isCollapsed ? 'แสดงแผงควบคุม' : 'ซ่อนแผงควบคุม';
+        }
+      }
+    });
+  }
+
+  // Check screen width on startup to collapse UI on smaller devices automatically
+  if (window.innerWidth < 1024) {
+    const hud = document.getElementById('app-hud');
+    if (hud) {
+      hud.classList.add('collapsed');
+      if (uiElements.textToggleHud) {
+        uiElements.textToggleHud.textContent = 'แสดงแผงควบคุม';
+      }
+    }
+  }
 
   updateTelemetry();
 }
