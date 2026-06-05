@@ -2,6 +2,10 @@
 
 แบบจำลองฟิสิกส์ดาราศาสตร์เชิงโต้ตอบ 3 มิติ (3D Interactive Astrophysics Simulation) บนเว็บเบราว์เซอร์ ที่จำลองปรากฏการณ์ทางจักรวาลวิทยาที่สำคัญ 3 รูปแบบ ได้แก่ **กาแล็กซีทางช้างเผือก (Milky Way Galaxy)**, **เลนส์ความโน้มถ่วงรอบหลุมดำมวลยิ่งยวด (Supermassive Black Hole Gravitational Lensing)** และ **การรวมตัวแผ่คลื่นความโน้มถ่วงของระบบดาวคู่ (Binary Neutron Star Inspiral & Kilonova)** เรนเดอร์บนเทคโนโลยี WebGL (Three.js) เพื่อประสิทธิภาพการแสดงผลระดับ 60 FPS
 
+## 🚀 การเข้าเล่น
+
+คุณสามารถทดสอบเล่นสนุก ๆได้ที่: [https://space-simulation-agy.vercel.app/](https://space-simulation-agy.vercel.app/)
+
 > [!NOTE]
 > **ข้อมูลผู้พัฒนาและเครื่องมือสร้างสรรค์ (AI Co-Creation)**
 > โปรเจกต์นี้ได้รับการพัฒนาและปรับปรุงฟิสิกส์โดย **ผู้พัฒนา (USER)** ร่วมกับ **Antigravity** (เอเจนต์ AI อัจฉริยะสำหรับเขียนโค้ด พัฒนาโดยทีมงาน **Google DeepMind**) ภายใต้กรอบการ pair programming เชิงลึกและการคำนวณดาราศาสตร์เชิงคณิตศาสตร์ฟิสิกส์จริง
